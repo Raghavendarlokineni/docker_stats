@@ -3,8 +3,12 @@ import requests
 
 def images_info(request):
     response = requests.get("http://127.0.0.1:6000/images/json")
+    table = []
     images_list = {}
-    for i in response.json():
-        images_list[i["RepoTags"][0].encode("utf-8")] = i["Id"].encode("utf-8")[7:19]
+    for image in response.json():
+        images_list["RepoTag"] = image["RepoTags"][0].encode("utf-8") 
+        images_list["Id"] = image["Id"].encode("utf-8")[7:19]
+        table.append(images_list)
+        images_list = {}
 
-    return JsonResponse(images_list,safe=False)
+    return JsonResponse(table,safe=False)
