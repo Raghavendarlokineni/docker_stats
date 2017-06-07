@@ -1,7 +1,6 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 import requests
-import sys
-import pdb
 import json
 
 HEADERS = {"Content-Type" : "application/json", "Accept" : "application/json"}
@@ -15,42 +14,45 @@ def network_details():
         details["Name"] = network["Name"].encode("utf-8")
         details["Id"] = network["Id"].encode("utf-8")[:12]
         details["Driver"] = network["Driver"].encode("utf-8")
- 
-        #to check if dict is Null
-        if network["IPAM"]["Config"].__len__() == 0:
-            details["Subnet"] = "none" 
-            details["Gateway"] = "none"
-        else:
-            ip_config = network["IPAM"]["Config"][0]
+        
+        ipconfig = network["IPAM"]["Config"]
 
-            details["Subnet"] = ip_config["Subnet"]
-            details["Gateway"] = ip_config["Gateway"]
+        if ipconfig.__len__() == 0:
+            ipconfig = [{}]
+      
+        #set subnet and gateway to none if not present, there are cases
+        #when only one of them is avilable
+        ipconfig[0].setdefault("Subnet", "none")
+        ipconfig[0].setdefault("Gateway", "none")
+        
+        details["Subnet"] = ipconfig[0]["Subnet"] 
+        details["Gateway"] = ipconfig[0]["Gateway"]
 
         table.append(details)
-        #intializing to dict to None as scope if outside the for loop as well
+        #intializing to dict to None as scope is outside the for loop as well
         details = {}
     return table 
-
-def network_info(request):
-    if request.method == "GET":
-        return JsonResponse(network_details(), safe=False)
 
 def create_nw(content):
     response = requests.post("http://127.0.0.1:6000/networks/create", 
                             content, headers = HEADERS )   
-    print(response.status_code) 
     return response.json()
 
-def create_network(request):   
-    if request.method == "POST":
+@require_http_methods(["GET", "POST"])
+def network_info(request):
+    if request.method == "GET":
+        return JsonResponse(network_details(), safe=False)
+    elif request.method == "POST":
         try:
             response = create_nw(request.body)
-            print(response)
-            if response.status_code != 200:
-                return JsonResponse("Error : {}".format(response.values()[0]),safe=False)
+            #explicitly looking for Warning or message to know the status
+            if "Warning" in response:
+                return JsonResponse("Success, Network created with ID: {}".
+                                   format(response['Id'].encode('utf-8')[:12]),safe=False)
+ 	    elif "message" in response:
+                return JsonResponse("Error : {}".
+                                   format(response.values()[0]),safe=False)
         except ValueError:
-	    return JsonResponse("Error : Improper JSON format provided" , safe=False)
-        
-        return JsonResponse("Success", safe=False)
+	    return JsonResponse("Error : Improper JSON format provided", safe=False)
 
            

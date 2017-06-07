@@ -1,12 +1,11 @@
-from django.shortcuts import render, render_to_response
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
 import requests
-from prettytable import PrettyTable
 
 def container_status(status):
  
     url = "http://127.0.0.1:6000/containers/json?all"
-
     if status == "all":
        url += "=1"
     elif status == "running":
@@ -15,6 +14,7 @@ def container_status(status):
 
     return requests.get(url)
 
+@require_http_methods(["GET"])
 def active_containers(request):
    
     response = container_status("all")

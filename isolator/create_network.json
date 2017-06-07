@@ -1,37 +1,22 @@
 {
-	"Name": "isolated_nw",
+	"Name": "isolated_nw1",
 	"CheckDuplicate": true,
-	"Driver": "bridge",
+	"Driver": "macvlan",
 	"EnableIPv6": false,
 	"IPAM": {
 		"Driver": "default",
 		"Config": [
 			{
-				"Subnet": "255.255.255.0",
-				"IPRange": "10.0.3.0/24",
-				"Gateway": "10.0.3.1"
-			},
-			{
-				"Subnet": "2001:db8:abcd::/64",
-				"Gateway": "2001:db8:abcd::1011"
+				"Subnet": "10.0.2.0/24",
+				"Gateway": "10.0.2.2"
 			}
 		],
-		"Options": {
-			"foo": "bar"
-		}
+		"Options": {}
 	},
 	"Internal": false,
 	"Attachable": false,
 	"Options": {
-		"com.docker.network.bridge.default_bridge": "true",
-		"com.docker.network.bridge.enable_icc": "true",
-		"com.docker.network.bridge.enable_ip_masquerade": "true",
-		"com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
-		"com.docker.network.bridge.name": "docker0",
-		"com.docker.network.driver.mtu": "1500"
+            "parent": "eth0"        
 	},
-	"Labels": {
-		"com.example.some-label": "some-value",
-		"com.example.some-other-label": "some-other-value"
-	}
+	"Labels": {}
 }
